@@ -22,7 +22,8 @@ fn main() {
 
     let mut color_map = Palette::new(&image, NUM_COLORS);
     let mut image_map: HashMap<image::Rgb<u8>, Vec<Image>> = HashMap::new();
-    read_sample_imaged_into_map(&mut image_map, &color_map, tile_dir_path);
+    read_tiles_imaged_into_map(&mut image_map, &color_map, tile_dir_path);
+    merge_colors_with_few_tiles(&mut image_map, &mut color_map, 2);
 
     let available_colors = image_map.keys().cloned().collect::<Vec<_>>();
     color_map.shrink(available_colors.clone());
@@ -64,7 +65,41 @@ fn main() {
     writer.finish().expect("failed to finish writing out file");
 }
 
-fn read_sample_imaged_into_map(
+fn merge_colors_with_few_tiles(
+    image_map: &mut HashMap<image::Rgb<u8>, Vec<Image>>,
+    color_map: &mut Palette,
+    min_tiles: usize,
+) {
+    let mut colors_to_merge = Vec::new();
+    for (color, images) in image_map.iter() {
+        if images.len() < min_tiles {
+            colors_to_merge.push(color.clone());
+        }
+    }
+    for color in colors_to_merge {
+        // we may have merged another tile into this color within this loop, so let's
+        // check again if we have enough tiles and may be able to continue
+        let tiles = if let Some(tiles) = image_map.get(&color) {
+            if tiles.len() >= min_tiles {
+                continue;
+            }
+            tiles.clone()
+        } else {
+            continue;
+        };
+
+        color_map.remove_centroid(color);
+        image_map.remove(&color);
+
+        let replacement_color = color_map.map(&color).expect("mapping colors works always");
+
+        if let Some(replacement_tiles) = image_map.get_mut(&replacement_color) {
+            replacement_tiles.extend(tiles.clone());
+        }
+    }
+}
+
+fn read_tiles_imaged_into_map(
     image_map: &mut HashMap<image::Rgb<u8>, Vec<Image>>,
     color_map: &Palette,
     tile_dir_path: &str,

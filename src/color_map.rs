@@ -47,6 +47,11 @@ impl Palette {
             .retain(|c| used_lab_colors.contains(c));
     }
 
+    pub fn remove_centroid(&mut self, color: Rgb<u8>) {
+        let index = self.index_of(&color);
+        self.kmeans.centroids.remove(index);
+    }
+
     #[inline(always)]
     pub fn map_mut(&self, color: &mut Rgb<u8>) {
         let index = self.index_of(color);
