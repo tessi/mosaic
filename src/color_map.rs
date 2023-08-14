@@ -5,6 +5,7 @@ use palette::cast::from_component_slice;
 use palette::{IntoColor, Lab, Srgb};
 
 use image::imageops::colorops::ColorMap;
+use rand::Rng;
 
 #[derive(Clone, Debug)]
 pub struct Palette {
@@ -19,11 +20,7 @@ fn centroid_color(centroid: Lab) -> Rgb<u8> {
 impl Palette {
     pub fn new(image: &image::RgbImage, max_colors: usize) -> Palette {
         let mut result = Kmeans::new();
-
-        let mut buf = [0u8; 8];
-        getrandom::getrandom(&mut buf).expect("getrandom failed");
-        let seed = u64::from_le_bytes(buf);
-
+        let seed: u64 = rand::thread_rng().gen();
         let lab = from_component_slice::<Srgb<u8>>(image.as_bytes())
             .iter()
             .map(|rgb| rgb.into_format().into_color())

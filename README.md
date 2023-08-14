@@ -1,6 +1,6 @@
 # Mosaic
 
-Stitches together images in the `tiles` directory (put your own images there) into a mosaic. The mosaic is built from an input image, where we apply the following process:
+Stitches together images from a `tiles` directory (put your own images there) into a mosaic. The mosaic is built from an input image, where we apply the following process:
 
 * downsize all tile images to 140x140 pixels
 * reduce colors of the input image to 128 colors
@@ -12,7 +12,7 @@ The result is a mosaic of tile images that resembles the input image.
 ## Usage
 
 ```sh
-./mosaic ./input.png ./output.png
+./mosaic ./input.png ./output.png path/to/tiles
 ```
 
 it's much faster when compiled in release mode :)

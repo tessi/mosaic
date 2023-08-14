@@ -8,11 +8,13 @@ use std::io::Write;
 
 const TILE_SIZE: u32 = 140;
 const NUM_COLORS: usize = 128;
+const SUPPORTED_TILE_EXTENSIONS: [&str; 3] = ["jpg", "jpeg", "png"];
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     let input_path = &args[1];
     let output_path = &args[2];
+    let tile_dir_path = &args[3];
 
     let mut image = image::open(input_path)
         .expect("failed to open image")
@@ -20,7 +22,7 @@ fn main() {
 
     let mut color_map = Palette::new(&image, NUM_COLORS);
     let mut image_map: HashMap<image::Rgb<u8>, Vec<Image>> = HashMap::new();
-    read_sample_imaged_into_map(&mut image_map, &color_map);
+    read_sample_imaged_into_map(&mut image_map, &color_map, tile_dir_path);
 
     let available_colors = image_map.keys().cloned().collect::<Vec<_>>();
     color_map.shrink(available_colors.clone());
@@ -65,13 +67,22 @@ fn main() {
 fn read_sample_imaged_into_map(
     image_map: &mut HashMap<image::Rgb<u8>, Vec<Image>>,
     color_map: &Palette,
+    tile_dir_path: &str,
 ) {
-    let tile_dir = "tiles";
-    let tile_paths = std::fs::read_dir(tile_dir).expect("failed to read sample directory");
+    let tile_paths = std::fs::read_dir(tile_dir_path).expect("failed to read sample directory");
 
     for tile_image_path in tile_paths {
         let tile_image_path = tile_image_path.expect("failed to read sample path");
         let tile_image_path = tile_image_path.path();
+
+        if let Some(ext) = tile_image_path.extension() {
+            if !SUPPORTED_TILE_EXTENSIONS.contains(&ext.to_str().unwrap()) {
+                continue;
+            }
+        } else {
+            continue;
+        }
+
         let tile_image_path = tile_image_path
             .to_str()
             .expect("failed to convert sample path to str");
